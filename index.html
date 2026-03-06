@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Piping Engineering Tools</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<h1>Piping Engineering Tools</h1>
+
+<h2>1. Thermal Expansion Calculator</h2>
+
+<label>Pipe Length (m)</label>
+<input type="number" id="length">
+
+<label>Temperature Change (°C)</label>
+<input type="number" id="temp">
+
+<label>Expansion Coefficient</label>
+<input type="number" id="alpha" value="0.000012">
+
+<button onclick="calcExpansion()">Calculate</button>
+
+<h3 id="result"></h3>
+
+<hr>
+
+<h2>2. Hydrotest Stress Calculator</h2>
+
+<label>Pressure (MPa)</label>
+<input type="number" id="pressure">
+
+<label>Pipe OD (mm)</label>
+<input type="number" id="diameter">
+
+<label>Thickness (mm)</label>
+<input type="number" id="thickness">
+
+<button onclick="calcHydro()">Calculate</button>
+
+<h3 id="hydroresult"></h3>
+
+<script src="js/script.js"></script>
+
+</body>
+
+</html>
