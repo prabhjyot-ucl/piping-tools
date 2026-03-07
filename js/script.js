@@ -7,8 +7,7 @@ let a = document.getElementById("alpha").value;
 let expansion = a * L * T;
 
 document.getElementById("result").innerHTML =
-"Thermal Expansion = " + expansion.toFixed(3) + " meters";
-
+"Thermal Expansion = " + expansion.toFixed(3) + " m";
 }
 
 
@@ -22,8 +21,8 @@ let stress = (P * D) / (2 * t);
 
 document.getElementById("hydroresult").innerHTML =
 "Hoop Stress = " + stress.toFixed(2) + " MPa";
-
 }
+
 
 function calcPipeWeight(){
 
@@ -35,7 +34,6 @@ let weight = 0.02466 * (od - t) * t * L;
 
 document.getElementById("piperesult").innerHTML =
 "Pipe Weight = " + weight.toFixed(2) + " kg";
-
 }
 
 
@@ -48,7 +46,6 @@ let load = W / n;
 
 document.getElementById("supportresult").innerHTML =
 "Load per Support = " + load.toFixed(2) + " kg";
-
 }
 
 
@@ -63,5 +60,4 @@ let L = Math.pow((384 * E * I * d) / (5 * w), 0.25);
 
 document.getElementById("spanresult").innerHTML =
 "Maximum Span ≈ " + L.toFixed(2) + " m";
-
 }
