@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thermal Expansion Calculator — ASME B31.3 / B31.1</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f4f6f9; --surface:#ffffff; --surface2:#edf0f5;
+  --border:#d0d7e3; --border2:#b8c2d4;
+  --accent:#e87500; --accent2:#c46200;
+  --adim:rgba(232,117,0,0.08); --adim2:rgba(232,117,0,0.15);
+  --text:#1a2233; --text2:#4a5568; --text3:#8a96a8;
+  --warn:#d97706; --wdim:rgba(217,119,6,0.10);
+  --red:#dc2626;
+  --mono:'DM Mono',monospace; --sans:'DM Sans',sans-serif; --disp:'Bebas Neue',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(232,117,0,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(232,117,0,.03) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 22px 80px}
+
+header{padding:36px 0 28px;border-bottom:1px solid var(--border);margin-bottom:36px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--accent);text-transform:uppercase;background:var(--adim);border:1px solid rgba(0,232,122,.2);padding:4px 10px;border-radius:2px;width:fit-content;margin-bottom:8px}
+.badge::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+h1{font-family:var(--disp);font-size:clamp(34px,6vw,68px);letter-spacing:.03em;line-height:.95}
+h1 span{color:var(--accent)}
+.hdr-meta{font-family:var(--mono);font-size:10.5px;color:var(--text3);line-height:1.8;text-align:right}
+.hdr-meta strong{color:var(--text2);display:block}
+
+.main-grid{display:grid;grid-template-columns:1fr 360px;gap:22px;align-items:start}
+@media(max-width:800px){.main-grid{grid-template-columns:1fr}}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:22px}
+.card:last-child{margin-bottom:0}
+.ch{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.ch-icon{width:26px;height:26px;background:var(--adim);border:1px solid rgba(0,232,122,.2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.ch-title{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2)}
+.cb{padding:18px}
+
+.search-wrap{position:relative;margin-bottom:10px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--text3);fill:none;pointer-events:none}
+.search-input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:9px 12px 9px 32px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--text3)}
+.mat-list{max-height:290px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;background:var(--bg)}
+.mat-list::-webkit-scrollbar{width:3px}
+.mat-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.grp-label{padding:7px 12px 3px;font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);background:var(--surface2);border-top:1px solid var(--border);position:sticky;top:0;z-index:1}
+.mat-item{padding:9px 12px;cursor:pointer;border-bottom:1px solid rgba(31,46,40,.4);transition:background .12s;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mat-item:hover{background:var(--adim)}
+.mat-item.sel{background:var(--adim2);border-left:2px solid var(--accent)}
+.mi-name{font-size:12.5px;color:var(--text);line-height:1.3}
+.mi-spec{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.mi-tag{font-family:var(--mono);font-size:9px;padding:2px 5px;border-radius:2px;white-space:nowrap}
+.tag-both{background:rgba(0,232,122,.1);color:var(--accent2);border:1px solid rgba(0,232,122,.2)}
+.tag-b313{background:rgba(180,100,255,.1);color:#c07aff;border:1px solid rgba(192,122,255,.2)}
+.tag-b311{background:rgba(0,150,255,.1);color:#4da6ff;border:1px solid rgba(77,166,255,.2)}
+.sel-mat{background:var(--adim);border:1px solid rgba(0,232,122,.2);border-radius:4px;padding:13px;margin-top:12px;display:none}
+.sm-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:8px}
+.sm-row{display:flex;gap:18px;flex-wrap:wrap}
+.sm-item label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:2px}
+.sm-item span{font-family:var(--mono);font-size:12px;color:var(--accent)}
+
+.form-grid{display:grid;gap:13px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px}
+.flabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text2)}
+.flabel .u{color:var(--text3);font-size:9px}
+.inp-wrap{position:relative}
+.finput{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:9px 44px 9px 11px;color:var(--text);font-family:var(--mono);font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;-moz-appearance:textfield}
+.finput::-webkit-outer-spin-button,.finput::-webkit-inner-spin-button{-webkit-appearance:none}
+.finput:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,232,122,.06)}
+.finput.err{border-color:var(--red)}
+.iunit{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:10px;color:var(--text3);pointer-events:none}
+.fhint{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px}
+
+.unit-toggle{display:flex;border:1px solid var(--border2);border-radius:4px;overflow:hidden;margin-bottom:14px}
+.ubtn{flex:1;padding:8px;background:var(--bg);border:none;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;letter-spacing:.06em}
+.ubtn.on{background:var(--adim2);color:var(--accent);border-bottom:2px solid var(--accent)}
+.ubtn:hover:not(.on){color:var(--text2);background:var(--surface2)}
+
+.calc-btn{width:100%;padding:13px;background:var(--accent);border:none;border-radius:4px;color:#ffffff;font-family:var(--disp);font-size:18px;letter-spacing:.08em;cursor:pointer;transition:all .2s;margin-top:10px}
+.calc-btn:hover{background:#c46200;transform:translateY(-1px);box-shadow:0 4px 20px rgba(232,117,0,.3)}
+.calc-btn:active{transform:translateY(0)}
+.reset-btn{width:100%;padding:9px;background:transparent;border:1px solid var(--border2);border-radius:4px;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;margin-top:7px;letter-spacing:.07em}
+.reset-btn:hover{border-color:var(--text3);color:var(--text2)}
+
+.results-card{position:sticky;top:18px}
+.res-main{padding:22px 18px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--adim) 0%,transparent 100%)}
+.res-label{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.res-val{font-family:var(--disp);font-size:50px;color:var(--accent);line-height:1;letter-spacing:.02em}
+.res-val.flash{animation:flash .4s ease}
+@keyframes flash{0%{color:var(--accent)}50%{color:#c46200;text-shadow:0 0 20px rgba(232,117,0,.4)}100%{color:var(--accent)}}
+.res-unit{font-family:var(--mono);font-size:12px;color:var(--text2);margin-top:4px}
+.res-rows{padding:14px 18px;display:flex;flex-direction:column}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.rrow:last-child{border-bottom:none}
+.rlabel{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.rlabel .dot{width:4px;height:4px;border-radius:50%;background:var(--accent);opacity:.5;flex-shrink:0}
+.rval{font-family:var(--mono);font-size:12px;color:var(--text)}
+.warn-box{margin:0 18px 16px;background:var(--wdim);border:1px solid rgba(240,165,0,.22);border-radius:4px;padding:11px 13px;font-size:11px;color:var(--warn);font-family:var(--mono);display:none;line-height:1.55}
+.warn-box.show{display:block}
+.warn-box strong{display:block;margin-bottom:3px;letter-spacing:.05em}
+.formula-box{margin:0 18px 18px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:13px}
+.formula-title{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
+.formula-text{font-family:var(--mono);font-size:12px;color:var(--accent2);line-height:2}
+.formula-text .v{color:var(--text)}
+.formula-text .dim{color:var(--text3);font-size:10px}
+.empty-state{display:flex;flex-direction:column;align-items:center;padding:30px 18px;gap:9px;opacity:.45}
+.et{font-family:var(--mono);font-size:11px;color:var(--text3);text-align:center;line-height:1.6;font-size:24px}
+.note{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;background:var(--surface2);border-left:2px solid var(--accent);border-radius:0 4px 4px 0;font-size:11px;color:var(--text2);line-height:1.5;margin-top:12px}
+.note::before{content:'ℹ';color:var(--accent);flex-shrink:0;margin-top:1px}
+
+.ref-table{width:100%;border-collapse:collapse;font-size:12px}
+.ref-table thead tr{background:var(--surface2);border-bottom:1px solid var(--border2)}
+.ref-table th{padding:9px 11px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-weight:400}
+.ref-table tbody tr{border-bottom:1px solid rgba(31,46,40,.45);cursor:pointer;transition:background .1s}
+.ref-table tbody tr:hover{background:var(--adim)}
+.ref-table tbody tr.active{background:var(--adim2)}
+.ref-table td{padding:9px 11px;color:var(--text);font-size:12px}
+.ref-table td.mono{font-family:var(--mono);font-size:11px;color:var(--accent2)}
+.ref-table td.spec{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.no-results{padding:18px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--text3)}
+
+footer{margin-top:50px;padding-top:22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.ft{font-family:var(--mono);font-size:10px;color:var(--text3);line-height:1.7}
+.ft strong{color:var(--text2)}
+.nav{display:flex;gap:4px;flex-wrap:wrap}
+.nc{padding:5px 9px;border:1px solid var(--border);border-radius:3px;font-family:var(--mono);font-size:10px;color:var(--text3);text-decoration:none;transition:all .15s}
+.nc:hover,.nc.on{border-color:var(--accent);color:var(--accent);background:var(--adim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <div class="badge">Tool 01 / 05 — Piping Engineering Suite</div>
+    <h1>THERMAL<br><span>EXPANSION</span></h1>
+  </div>
+  <div class="hdr-meta">
+    <strong>Standards Reference</strong>
+    ASME B31.3 — Process Piping, Appendix C, Table C-1<br>
+    ASME B31.1 — Power Piping, Appendix B, Table B-1<br>
+    <span style="color:var(--warn);font-size:9px;">Total expansion from 70°F (21°C) base — linear interpolation</span>
+  </div>
+</header>
+
+<div class="main-grid">
+  <div>
+
+    <div class="card">
+      <div class="ch"><div class="ch-icon">⬡</div><div class="ch-title">Material Selection</div></div>
+      <div class="cb">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-input" id="matSearch" type="text" placeholder="Search material, spec, grade…" autocomplete="off">
+        </div>
+        <div class="mat-list" id="matList"></div>
+        <div class="sel-mat" id="selMat">
+          <div class="sm-name" id="smName">—</div>
+          <div class="sm-row">
+            <div class="sm-item"><label>Spec</label><span id="smSpec">—</span></div>
+            <div class="sm-item"><label>Standard</label><span id="smStd">—</span></div>
+            <div class="sm-item"><label>Temp Range</label><span id="smRange">—</span></div>
+          </div>
+        </div>
+        <div class="note">Values are from ASME B31.3 Appendix C Table C-1 — total expansion (in/100ft) from 70°F base. Intermediate temperatures are linearly interpolated between tabulated points.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><div class="ch-icon">⚙</div><div class="ch-title">Input Parameters</div></div>
+      <div class="cb">
+        <div class="flabel" style="margin-bottom:6px">Unit System</div>
+        <div class="unit-toggle">
+          <button class="ubtn on" id="btnSI" onclick="setUnits('SI')">SI &nbsp;(m · °C)</button>
+          <button class="ubtn" id="btnUS" onclick="setUnits('US')">US Customary &nbsp;(ft · °F)</button>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="field">
+              <label class="flabel">Pipe Length <span class="u" id="lblLen">m</span></label>
+              <div class="inp-wrap">
+                <input class="finput" id="inpLen" type="number" placeholder="e.g. 50" min="0" step="0.1">
+                <span class="iunit" id="uLen">m</span>
+              </div>
+            </div>
+            <div class="field">
+              <label class="flabel">Install Temp <span class="u" id="lblT1">°C</span></label>
+              <div class="inp-wrap">
+                <input class="finput" id="inpT1" type="number" placeholder="e.g. 21" step="1">
+                <span class="iunit" id="uT1">°C</span>
+              </div>
+              <div class="fhint">Ambient / cold condition</div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel">Operating Temp <span class="u" id="lblT2">°C</span></label>
+            <div class="inp-wrap">
+              <input class="finput" id="inpT2" type="number" placeholder="e.g. 300" step="1">
+              <span class="iunit" id="uT2">°C</span>
+            </div>
+            <div class="fhint">Design / maximum operating temperature</div>
+          </div>
+        </div>
+        <button class="calc-btn" onclick="calculate()">CALCULATE EXPANSION</button>
+        <button class="reset-btn" onclick="resetAll()">↺ RESET</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="results-card">
+    <div class="card">
+      <div class="ch"><div class="ch-icon">△</div><div class="ch-title">Results</div></div>
+      <div id="emptyState" class="empty-state">
+        <div class="et">⟳</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text3);text-align:center;line-height:1.6">Select a material and<br>enter temperatures to calculate</div>
+      </div>
+      <div id="resContent" style="display:none">
+        <div class="res-main">
+          <div class="res-label">Net Thermal Expansion ΔL</div>
+          <div class="res-val" id="resMain">—</div>
+          <div class="res-unit" id="resUnit">mm</div>
+        </div>
+        <div class="res-rows">
+          <div class="rrow"><span class="rlabel"><span class="dot"></span>e(T₂) from 70°F base</span><span class="rval" id="resE2">—</span></div>
+          <div class="rrow"><span class="rlabel"><span class="dot"></span>e(T₁) from 70°F base</span><span class="rval" id="resE1">—</span></div>
+          <div class="rrow"><span class="rlabel"><span class="dot"></span>Net Δe = e(T₂) − e(T₁)</span><span class="rval" id="resDe">—</span></div>
+          <div class="rrow"><span class="rlabel"><span class="dot"></span>Pipe Length (L)</span><span class="rval" id="resL">—</span></div>
+          <div class="rrow"><span class="rlabel"><span class="dot"></span>ΔT</span><span class="rval" id="resDT">—</span></div>
+          <div class="rrow"><span class="rlabel"><span class="dot"></span>Back-calc. mean α</span><span class="rval" id="resAlpha">—</span></div>
+        </div>
+        <div class="warn-box" id="warnBox"><strong>⚠ TEMPERATURE RANGE WARNING</strong><span id="warnTxt"></span></div>
+        <div class="formula-box">
+          <div class="formula-title">Method — ASME B31.3 Appendix C</div>
+          <div class="formula-text">
+            <span class="v">ΔL</span> = [<span class="v">e(T₂)</span> − <span class="v">e(T₁)</span>] × <span class="v">L</span><br>
+            <span class="dim">e = total expansion (in/100ft)</span><br>
+            <span class="dim">measured from 70°F (21°C) base</span><br>
+            <span class="dim">per Table C-1, ASME B31.3 Appendix C</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="card" style="margin-top:0">
+  <div class="ch" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="ch-icon">≡</div>
+      <div class="ch-title">ASME B31.3 Appendix C — Total Expansion Reference (mm/m from 21°C base)</div>
+    </div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap">
+      <span class="mi-tag tag-both">Both</span>
+      <span class="mi-tag tag-b311">B31.1</span>
+      <span class="mi-tag tag-b313">B31.3</span>
+    </div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Material (Table C-1 Column)</th>
+          <th>Typical Spec</th>
+          <th>Std</th>
+          <th>Temp Range</th>
+          <th>e @ 100°C</th>
+          <th>e @ 200°C</th>
+          <th>e @ 300°C</th>
+          <th>e @ 400°C</th>
+        </tr>
+      </thead>
+      <tbody id="refBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<footer>
+  <div class="ft">
+    <strong>Piping Engineering Tools — Tool Suite</strong>
+    ASME B31.3-2020 Appendix C Table C-1 · ASME B31.1-2020 Appendix B Table B-1<br>
+    Total expansion tabulated from 70°F (21.1°C) base. Linear interpolation between code table points.<br>
+    For engineering guidance only. Verify against applicable code edition and project specifications.
+  </div>
+  <div class="nav">
+    <a href="#" class="nc on">01 Thermal</a>
+    <a href="#" class="nc">02 Hydrotest</a>
+    <a href="#" class="nc">03 Weight</a>
+    <a href="#" class="nc">04 Support</a>
+    <a href="#" class="nc">05 Span</a>
+  </div>
+</footer>
+
+</div>
+
+<script>
+// ================================================================
+//  DATA: ASME B31.3 Appendix C Table C-1
+//  Total Linear Thermal Expansion (in/100 ft) from 70°F base
+//  Columns:
+//   0  = Temp (°F)
+//   1  = Carbon Steel / C-Mo / Low Chrome (to 3Cr-Mo)       [A]
+//   2  = 5Cr-Mo through 9Cr-Mo (P5, P9, P91, P92)           [B]
+//   3  = Austenitic SS 18Cr-8Ni & 25Cr-20Ni (304,316,310)   [C]
+//   4  = 12Cr/17Cr/27Cr Ferritic SS (410, 430, 446)          [D]
+//   5  = Monel 67Ni-30Cu                                     [E]
+//   6  = 3.5Ni Steel                                         [F]
+//   7  = 36Ni Invar                                          [G]
+//   8  = Aluminum alloys                                     [H]
+//   9  = Gray Cast Iron                                      [I]
+//   10 = Bronze / Brass                                      [J]
+//   11 = 70Cu-30Ni                                           [K]
+//   12 = Ni-Fe-Cr (Incoloy 800/800H)                        [L]
+//   13 = Ni-Cr-Fe (Inconel 600)                              [M]
+//   14 = Ductile Iron                                        [N]
+//   15 = Titanium Gr.1/2/3/7/12                              [O]
+//   16 = Copper                                              [P]
+// ================================================================
+const RAW = [
+[-325, -2.37,-2.22,-3.85,-2.04, null,-2.62,-2.25,-4.68, null,-3.98,-3.88,-3.15, null, null, null,-1.16, null],
+[-300, -2.24,-2.10,-3.63,-1.92, null,-2.50,-2.17,-4.46, null,-3.74,-3.64,-2.87, null, null, null,-1.09, null],
+[-275, -2.11,-1.98,-3.41,-1.80, null,-2.38,-2.07,-4.21, null,-3.50,-3.40,-2.70, null, null, null,-1.03, null],
+[-250, -1.98,-1.86,-3.19,-1.68, null,-2.26,-1.96,-3.97, null,-3.26,-3.16,-2.53, null, null, null,-0.96, null],
+[-225, -1.85,-1.74,-2.96,-1.57, null,-2.14,-1.86,-3.71, null,-3.02,-2.93,-2.36, null, null, null,-0.90, null],
+[-200, -1.71,-1.62,-2.73,-1.46, null,-2.02,-1.76,-3.44, null,-2.78,-2.69,-2.20, null, null, null,-0.82, null],
+[-175, -1.58,-1.50,-2.50,-1.35, null,-1.90,-1.62,-3.15, null,-2.52,-2.44,-2.03, null, null, null,-0.76, null],
+[-150, -1.45,-1.37,-2.27,-1.24, null,-1.79,-1.48,-2.85, null,-2.26,-2.19,-1.87, null, null, null,-0.69, null],
+[-125, -1.30,-1.23,-2.01,-1.11, null,-1.59,-1.33,-2.54, null,-1.98,-1.93,-1.70, null, null, null,-0.62, null],
+[-100, -1.15,-1.08,-1.75,-0.98, null,-1.38,-1.17,-2.22, null,-1.71,-1.66,-1.53, null, null, null,-0.55, null],
+[ -75, -1.00,-0.94,-1.50,-0.85, null,-1.18,-1.01,-1.90, null,-1.43,-1.39,-1.37, null, null, null,-0.47, null],
+[ -50, -0.84,-0.79,-1.24,-0.72, null,-0.98,-0.84,-1.58, null,-1.17,-1.13,-1.14, null, null, null,-0.39, null],
+[ -25, -0.68,-0.63,-0.98,-0.57, null,-0.77,-0.67,-1.25, null,-0.91,-0.88,-0.88, null, null, null,-0.31, null],
+[   0, -0.49,-0.46,-0.72,-0.42, null,-0.57,-0.50,-0.92, null,-0.66,-0.65,-0.63, null, null, null,-0.22, null],
+[  25, -0.32,-0.30,-0.46,-0.27, null,-0.37,-0.32,-0.60, null,-0.43,-0.42,-0.41, null, null, null,-0.14, null],
+[  50, -0.14,-0.13,-0.21,-0.12, null,-0.20,-0.15,-0.28, null,-0.20,-0.20,-0.21, null, null, null,-0.07, null],
+[  70,  0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+[ 100,  0.23, 0.22, 0.34, 0.20, 0.28, 0.23, 0.02, 0.52, 0.18, 0.40, 0.38, 0.32, 0.25, 0.20, 0.20, 0.08, 0.35],
+[ 125,  0.42, 0.40, 0.62, 0.36, 0.52, 0.42, 0.05, 0.95, 0.34, 0.73, 0.70, 0.58, 0.46, 0.38, 0.38, 0.15, 0.64],
+[ 150,  0.61, 0.58, 0.90, 0.53, 0.75, 0.61, 0.06, 1.39, 0.49, 1.07, 1.03, 0.84, 0.67, 0.55, 0.55, 0.22, 0.93],
+[ 175,  0.80, 0.76, 1.18, 0.69, 0.99, 0.81, 0.08, 1.84, 0.65, 1.41, 1.37, 1.12, 0.89, 0.73, 0.73, 0.29, 1.23],
+[ 200,  0.99, 0.94, 1.46, 0.86, 1.22, 1.01, 0.10, 2.30, 0.81, 1.76, 1.70, 1.39, 1.11, 0.91, 0.91, 0.36, 1.53],
+[ 225,  1.21, 1.13, 1.75, 1.03, 1.46, 1.21, 0.13, 2.77, 0.97, 2.12, 2.05, 1.68, 1.34, 1.11, 1.11, 0.43, 1.84],
+[ 250,  1.40, 1.33, 2.03, 1.21, 1.71, 1.42, 0.17, 3.25, 1.14, 2.49, 2.40, 1.97, 1.58, 1.30, 1.30, 0.50, 2.16],
+[ 275,  1.61, 1.52, 2.32, 1.38, 1.96, 1.63, 0.20, 3.72, 1.31, 2.86, 2.75, 2.27, 1.83, 1.50, 1.50, 0.57, 2.48],
+[ 300,  1.82, 1.71, 2.61, 1.56, 2.21, 1.84, 0.24, 4.20, 1.48, 3.24, 3.12, 2.57, 2.08, 1.70, 1.70, 0.65, 2.81],
+[ 325,  2.04, 1.90, 2.90, 1.74, 2.44, 2.05, 0.30, 4.69, 1.65, 3.62, 3.49, 2.87, 2.33, 1.91, 1.91, 0.73, 3.14],
+[ 350,  2.26, 2.10, 3.20, 1.93, 2.68, 2.26, 0.36, 5.18, 1.83, 4.01, 3.87, 3.18, 2.58, 2.12, 2.12, 0.81, 3.48],
+[ 375,  2.48, 2.30, 3.50, 2.11, 2.91, 2.47, 0.42, 5.67, 2.01, 4.40, 4.25, 3.49, 2.83, 2.33, 2.33, 0.88, 3.82],
+[ 400,  2.70, 2.50, 3.80, 2.30, 3.25, 2.69, 0.48, 6.18, 2.20, 4.80, 4.64, 3.81, 3.09, 2.55, 2.55, 0.96, 4.17],
+[ 425,  2.93, 2.72, 4.10, 2.50, 3.52, 2.91, 0.56, 6.68, 2.39, 5.21, 5.03, 4.13, 3.35, 2.77, 2.77, 1.04, 4.52],
+[ 450,  3.16, 2.93, 4.41, 2.69, 3.79, 3.13, 0.66, 7.18, 2.58, 5.62, 5.44, 4.45, 3.62, 2.99, 2.99, 1.12, 4.88],
+[ 475,  3.39, 3.14, 4.71, 2.89, 4.06, 3.35, 0.76, null, 2.78, 6.03, 5.84, 4.77, 3.89, 3.22, 3.22, null, 5.24],
+[ 500,  3.62, 3.35, 5.01, 3.08, 4.33, 3.58, 0.84, null, 2.98, 6.45, 6.25, 5.09, 4.16, 3.45, 3.45, null, 5.61],
+[ 525,  3.86, 3.58, 5.31, 3.28, 4.61, 3.81, 0.96, null, 3.18, 6.87, 6.66, 5.42, 4.44, 3.68, 3.68, null, 5.98],
+[ 550,  4.11, 3.80, 5.62, 3.49, 4.90, 4.04, 1.08, null, 3.39, 7.30, 7.08, 5.75, 4.72, 3.92, 3.92, null, 6.35],
+[ 575,  4.35, 4.02, 5.93, 3.69, 5.18, 4.27, 1.20, null, 3.60, 7.74, 7.51, 6.08, 5.00, 4.17, 4.17, null, null],
+[ 600,  4.60, 4.24, 6.24, 3.90, 5.46, 4.50, 1.32, null, 3.82, 8.17, 7.95, 6.41, 5.28, 4.42, 4.42, null, null],
+[ 625,  4.86, 4.47, 5.96, 4.10, 5.75, 4.74, null, null, 4.04, null, null, null, 5.56, 4.67, null, null, null],
+[ 650,  5.11, 4.69, 6.87, 4.31, 6.05, 4.98, null, null, 4.27, null, null, null, 5.84, 4.93, null, null, null],
+[ 700,  5.63, 5.14, 7.50, 4.73, 6.64, 5.46, null, null, 4.73, null, null, null, 6.40, 5.46, null, null, null],
+[ 750,  6.16, 5.62, 8.15, 5.16, 7.25, 5.94, null, null, 5.21, null, null, null, 6.97, 5.99, null, null, null],
+[ 800,  6.70, 6.10, 8.80, 5.60, 7.85, 6.43, null, null, 5.71, null, null, null, 7.53, 6.53, null, null, null],
+[ 850,  7.25, 6.59, 9.46, 6.05, 8.48, 6.93, null, null, null, null, null, null, 8.09, 7.08, null, null, null],
+[ 900,  7.81, 7.07,10.12, 6.49, 9.12, 7.43, null, null, null, null, null, null, 8.65, 7.64, null, null, null],
+[ 950,  8.35, 7.56,10.80, 6.94, 9.77, 7.93, null, null, null, null, null, null, 9.21, 8.20, null, null, null],
+[1000,  8.89, 8.06,11.48, 7.40,10.42, 8.41, null, null, null, null, null, null, 9.77, 8.77, null, null, null],
+[1050,  9.46, 8.55,12.16, 7.95,11.09, null, null, null, null, null, null, null,10.33, null, null, null, null],
+[1100, 10.04, 9.05,12.84, 8.31,11.77, null, null, null, null, null, null, null,10.89, null, null, null, null],
+[1200, 11.10,10.00,14.20, 9.20,13.15, null, null, null, null, null, null, null,12.01, null, null, null, null],
+[1300, 12.22,11.06,15.56,10.11,14.58, null, null, null, null, null, null, null,13.13, null, null, null, null],
+[1400, 13.34,12.05,16.92,11.01,16.02, null, null, null, null, null, null, null,14.25, null, null, null, null],
+];
+
+// Material definitions
+const MATERIALS = [
+  { g:'Carbon Steel',            n:'Carbon Steel / C-Mo / Low Chrome (to 3Cr-Mo)', s:'A53, A106, A335 P1/P2/P11/P22',  col:1, std:'Both' },
+  { g:'Low Alloy Steel',         n:'5Cr-Mo through 9Cr-Mo',                         s:'A335 P5/P7/P9/P91/P92',           col:2, std:'Both' },
+  { g:'Austenitic Stainless',    n:'18Cr-8Ni (Tp304/316/321/347) & 25Cr-20Ni (Tp310)', s:'A312 TP304/316/321/347/310',  col:3, std:'Both' },
+  { g:'Ferritic/Martensitic SS', n:'12Cr / 17Cr / 27Cr  (Types 410, 430, 446)',    s:'A268 TP410/TP430/TP446',           col:4, std:'Both' },
+  { g:'Nickel Alloys',           n:'Monel — 67Ni-30Cu (Monel 400)',                 s:'B165 / UNS N04400',               col:5, std:'B31.3' },
+  { g:'Nickel Alloys',           n:'3½ Ni Steel',                                   s:'A333 Gr.3 / A350 LF3',            col:6, std:'B31.1' },
+  { g:'Nickel Alloys',           n:'36 Ni (Invar)',                                  s:'UNS K93600',                      col:7, std:'B31.3' },
+  { g:'Nickel Alloys',           n:'Ni-Fe-Cr (Incoloy 800 / 800H)',                 s:'B407 / UNS N08800',               col:12, std:'B31.3' },
+  { g:'Nickel Alloys',           n:'Ni-Cr-Fe (Inconel 600)',                        s:'B167 / UNS N06600',               col:13, std:'B31.3' },
+  { g:'Aluminum Alloys',         n:'Aluminum (1xxx, 3xxx, 5xxx, 6xxx series)',       s:'B241 / B234',                     col:8, std:'B31.3' },
+  { g:'Cast Iron',               n:'Gray Cast Iron',                                 s:'A126 Class A/B/C',                col:9, std:'Both'  },
+  { g:'Cast Iron',               n:'Ductile (Nodular) Iron',                         s:'A395 / A536',                     col:14, std:'Both' },
+  { g:'Copper Alloys',           n:'Bronze & Brass',                                 s:'B111 / B43',                      col:10, std:'B31.3' },
+  { g:'Copper Alloys',           n:'70Cu-30Ni',                                      s:'B466 / UNS C71500',               col:11, std:'B31.3' },
+  { g:'Copper Alloys',           n:'Copper (seamless)',                              s:'B42 / UNS C10200',                col:16, std:'B31.3' },
+  { g:'Titanium',                n:'Titanium Gr.1/2/3/7/11/12/16/17',               s:'B338',                            col:15, std:'B31.3' },
+];
+
+const toC  = f => (f - 32) / 1.8;
+const toF  = c => c * 9/5 + 32;
+const i2mm = v => v * 0.8333; // in/100ft → mm/m
+
+function getE(col, tempF) {
+  let lo = null, hi = null;
+  for (let i = 0; i < RAW.length; i++) {
+    if (RAW[i][col] !== null) {
+      if (RAW[i][0] <= tempF) lo = i;
+      else if (hi === null) hi = i;
+    }
+  }
+  if (lo === null && hi === null) return null;
+  if (lo === null) return RAW[hi][col];
+  if (hi === null) return RAW[lo][col];
+  if (RAW[lo][0] === tempF) return RAW[lo][col];
+  const t0=RAW[lo][0], t1=RAW[hi][0], e0=RAW[lo][col], e1=RAW[hi][col];
+  return e0 + (e1-e0)*(tempF-t0)/(t1-t0);
+}
+function getMinF(col){ for(let i=0;i<RAW.length;i++) if(RAW[i][col]!==null) return RAW[i][0]; return 70; }
+function getMaxF(col){ for(let i=RAW.length-1;i>=0;i--) if(RAW[i][col]!==null) return RAW[i][0]; return 70; }
+
+let selMat=null, unitSys='SI';
+
+function renderList(q=''){
+  const el=document.getElementById('matList');
+  const lq=q.toLowerCase();
+  const groups={};
+  MATERIALS.forEach((m,i)=>{
+    if(lq && !m.n.toLowerCase().includes(lq) && !m.s.toLowerCase().includes(lq) && !m.g.toLowerCase().includes(lq)) return;
+    if(!groups[m.g]) groups[m.g]=[];
+    groups[m.g].push({...m,i});
+  });
+  const keys=Object.keys(groups);
+  if(!keys.length){el.innerHTML='<div class="no-results">No materials found</div>';return;}
+  let html='';
+  keys.forEach(g=>{
+    html+=`<div class="grp-label">${g}</div>`;
+    groups[g].forEach(m=>{
+      const cls=selMat&&selMat.i===m.i?'mat-item sel':'mat-item';
+      const tc=m.std==='Both'?'tag-both':m.std==='B31.3'?'tag-b313':'tag-b311';
+      html+=`<div class="${cls}" onclick="pickMat(${m.i})">
+        <div><div class="mi-name">${m.n}</div><div class="mi-spec">${m.s}</div></div>
+        <span class="mi-tag ${tc}">${m.std}</span>
+      </div>`;
+    });
+  });
+  el.innerHTML=html;
+}
+
+function pickMat(i){
+  selMat={...MATERIALS[i],i};
+  renderList(document.getElementById('matSearch').value);
+  document.querySelectorAll('#refBody tr').forEach((tr,ri)=>{ tr.classList.toggle('active',ri===i); if(ri===i) tr.scrollIntoView({block:'nearest'}); });
+  const sm=document.getElementById('selMat'); sm.style.display='block';
+  document.getElementById('smName').textContent=selMat.n;
+  document.getElementById('smSpec').textContent=selMat.s;
+  document.getElementById('smStd').textContent=selMat.std;
+  document.getElementById('smRange').textContent=`${toC(getMinF(selMat.col)).toFixed(0)}°C to ${toC(getMaxF(selMat.col)).toFixed(0)}°C`;
+}
+
+function renderRefTable(){
+  const tbody=document.getElementById('refBody');
+  tbody.innerHTML=MATERIALS.map((m,i)=>{
+    const tc=m.std==='Both'?'tag-both':m.std==='B31.3'?'tag-b313':'tag-b311';
+    const eVals=[212,392,572,752].map(tf=>{
+      const v=getE(m.col,tf);
+      return v!==null?i2mm(v).toFixed(3):'—';
+    });
+    return `<tr onclick="pickMat(${i})">
+      <td>${m.n}</td><td class="spec">${m.s}</td>
+      <td><span class="mi-tag ${tc}">${m.std}</span></td>
+      <td class="mono">${toC(getMinF(m.col)).toFixed(0)}°C to ${toC(getMaxF(m.col)).toFixed(0)}°C</td>
+      ${eVals.map(v=>`<td class="mono">${v}</td>`).join('')}
+    </tr>`;
+  }).join('');
+}
+
+function setUnits(s){
+  unitSys=s;
+  document.getElementById('btnSI').classList.toggle('on',s==='SI');
+  document.getElementById('btnUS').classList.toggle('on',s==='US');
+  const si=s==='SI';
+  ['lblLen','uLen'].forEach(id=>document.getElementById(id).textContent=si?'m':'ft');
+  ['lblT1','uT1'].forEach(id=>document.getElementById(id).textContent=si?'°C':'°F');
+  ['lblT2','uT2'].forEach(id=>document.getElementById(id).textContent=si?'°C':'°F');
+  ['inpLen','inpT1','inpT2'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id).classList.remove('err');});
+  hideRes();
+}
+
+function calculate(){
+  if(!selMat){alert('Please select a material first.');return;}
+  const lenRaw=parseFloat(document.getElementById('inpLen').value);
+  const t1Raw=parseFloat(document.getElementById('inpT1').value);
+  const t2Raw=parseFloat(document.getElementById('inpT2').value);
+  let valid=true;
+  [['inpLen',lenRaw],['inpT1',t1Raw],['inpT2',t2Raw]].forEach(([id,v])=>{
+    const ok=!isNaN(v); document.getElementById(id).classList.toggle('err',!ok); if(!ok) valid=false;
+  });
+  if(!valid) return;
+
+  const si=unitSys==='SI';
+  const L_ft = si ? lenRaw*3.28084 : lenRaw;
+  const T1_F = si ? toF(t1Raw) : t1Raw;
+  const T2_F = si ? toF(t2Raw) : t2Raw;
+  const col=selMat.col;
+  const minF=getMinF(col), maxF=getMaxF(col);
+
+  const warn=document.getElementById('warnBox'), wt=document.getElementById('warnTxt');
+  if(T2_F>maxF||T2_F<minF||T1_F<minF){
+    warn.classList.add('show');
+    wt.textContent=`T₂ = ${toC(T2_F).toFixed(1)}°C or T₁ = ${toC(T1_F).toFixed(1)}°C is outside the tabulated range for this material (${toC(minF).toFixed(0)}°C to ${toC(maxF).toFixed(0)}°C). Extrapolated — verify against code.`;
+  } else { warn.classList.remove('show'); }
+
+  const e2=getE(col,T2_F), e1=getE(col,T1_F);
+  if(e2===null||e1===null){alert('No tabulated data for this material at the given temperatures.');return;}
+
+  const dL_in=(e2-e1)*L_ft/100;
+  const dL_mm=dL_in*25.4;
+  const dT_F=T2_F-T1_F;
+  const alphaMeanC = dT_F!==0 ? Math.abs(dL_in)/(L_ft*Math.abs(dT_F))*1e6*1.8 : 0;
+
+  const mainVal = si ? dL_mm.toFixed(2) : dL_in.toFixed(4);
+  const mainUnit= si ? 'mm'             : 'inches';
+
+  document.getElementById('resMain').textContent = mainVal;
+  document.getElementById('resUnit').textContent  = mainUnit;
+  document.getElementById('resE2').textContent    = `${i2mm(e2).toFixed(4)} mm/m`;
+  document.getElementById('resE1').textContent    = `${i2mm(e1).toFixed(4)} mm/m`;
+  document.getElementById('resDe').textContent    = `${i2mm(e2-e1).toFixed(4)} mm/m`;
+  document.getElementById('resL').textContent     = si ? `${lenRaw.toFixed(2)} m` : `${lenRaw.toFixed(2)} ft`;
+  document.getElementById('resDT').textContent    = si ? `${(t2Raw-t1Raw).toFixed(1)} °C` : `${dT_F.toFixed(1)} °F`;
+  document.getElementById('resAlpha').textContent = `${alphaMeanC.toFixed(2)} ×10⁻⁶/°C`;
+
+  const rv=document.getElementById('resMain');
+  rv.classList.remove('flash'); void rv.offsetWidth; rv.classList.add('flash');
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('resContent').style.display='block';
+}
+
+function hideRes(){
+  document.getElementById('emptyState').style.display='';
+  document.getElementById('resContent').style.display='none';
+  document.getElementById('warnBox').classList.remove('show');
+}
+
+function resetAll(){
+  ['inpLen','inpT1','inpT2'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id).classList.remove('err');});
+  selMat=null;
+  document.getElementById('selMat').style.display='none';
+  document.getElementById('matSearch').value='';
+  renderList(); hideRes();
+  document.querySelectorAll('#refBody tr').forEach(tr=>tr.classList.remove('active'));
+}
+
+document.getElementById('matSearch').addEventListener('input',e=>renderList(e.target.value));
+document.addEventListener('keydown',e=>{if(e.key==='Enter') calculate();});
+
+renderList();
+renderRefTable();
+</script>
+</body>
+</html>
+
