@@ -42,8 +42,60 @@
 
 <h3 id="hydroresult"></h3>
 
+<hr>
+
+<h2>3. Pipe Weight Calculator</h2>
+
+<label>Outer Diameter (mm)</label>
+<input type="number" id="od">
+
+<label>Thickness (mm)</label>
+<input type="number" id="thk">
+
+<label>Pipe Length (m)</label>
+<input type="number" id="plen">
+
+<button onclick="calcPipeWeight()">Calculate</button>
+
+<h3 id="piperesult"></h3>
+
+<hr>
+
+<h2>4. Pipe Support Load Estimator</h2>
+
+<label>Total Pipe Weight (kg)</label>
+<input type="number" id="totalweight">
+
+<label>Number of Supports</label>
+<input type="number" id="supports">
+
+<button onclick="calcSupportLoad()">Calculate</button>
+
+<h3 id="supportresult"></h3>
+
+<hr>
+
+<h2>5. Pipe Span Calculator</h2>
+
+<label>Distributed Load (N/m)</label>
+<input type="number" id="load">
+
+<label>Elastic Modulus E (MPa)</label>
+<input type="number" id="E" value="200000">
+
+<label>Moment of Inertia I (mm⁴)</label>
+<input type="number" id="I">
+
+<label>Allowable Deflection (mm)</label>
+<input type="number" id="deflection">
+
+<button onclick="calcSpan()">Calculate</button>
+
+<h3 id="spanresult"></h3>
+  
 <script src="js/script.js"></script>
 
 </body>
 
 </html>
+
